@@ -258,6 +258,64 @@
   .stat-card.done { --stat-color: var(--moss); }
   .stat-card.todo { --stat-color: var(--blaze); }
 
+  .cat-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 14px;
+  }
+  @media (max-width: 480px){ .cat-row{ grid-template-columns: 1fr; } }
+  .cat-card {
+    background: #ffffff05;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    border-left: 3px solid var(--stat-color, var(--muted));
+  }
+  .cat-card.dialogue { --stat-color: var(--moss); }
+  .cat-card.ui { --stat-color: var(--blaze); }
+  .cat-card.other { --stat-color: var(--muted-2); }
+  .cat-lbl {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .cat-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .cat-num .cat-of {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--muted);
+  }
+
+  .cat-filter {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .cat-pill {
+    font-family: 'IBM Plex Sans Thai';
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease, color .15s ease;
+  }
+  .cat-pill:hover { border-color: var(--muted); color: var(--ink); }
+  .cat-pill.active {
+    border-color: var(--blaze);
+    background: var(--blaze-dim);
+    color: var(--blaze);
+  }
+
   .file-list {
     margin-top: 16px;
     display: flex;
@@ -385,6 +443,19 @@
     width: 1%;
   }
   td.textcol { color: var(--ink); line-height: 1.5; }
+  td.catcol { white-space: nowrap; width: 1%; }
+  .cat-badge {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--line-soft);
+    color: var(--muted);
+  }
+  .cat-badge.dialogue { color: var(--moss); border-color: var(--moss-dim); background: var(--moss-dim); }
+  .cat-badge.ui { color: var(--blaze); border-color: var(--blaze-dim); background: var(--blaze-dim); }
+  .cat-badge.other { color: var(--muted-2); }
   mark { background: var(--blaze-dim); color: var(--blaze); border-radius: 2px; padding: 0 1px; }
 
   .table-foot {
@@ -477,6 +548,21 @@
           </div>
         </div>
 
+        <div class="cat-row" id="catRow">
+          <div class="cat-card dialogue">
+            <div class="cat-lbl">บทพูด</div>
+            <div class="cat-num"><span id="catDialogueTodo">0</span><span class="cat-of"> / <span id="catDialogueTotal">0</span></span></div>
+          </div>
+          <div class="cat-card ui">
+            <div class="cat-lbl">UI</div>
+            <div class="cat-num"><span id="catUiTodo">0</span><span class="cat-of"> / <span id="catUiTotal">0</span></span></div>
+          </div>
+          <div class="cat-card other">
+            <div class="cat-lbl">อื่นๆ</div>
+            <div class="cat-num"><span id="catOtherTodo">0</span><span class="cat-of"> / <span id="catOtherTotal">0</span></span></div>
+          </div>
+        </div>
+
         <div class="file-list" id="fileList"></div>
 
         <div style="margin-top:14px;">
@@ -490,6 +576,12 @@
       <div class="table-head">
         <h3>รายการที่ยังไม่แปล</h3>
         <span class="count-pill" id="tableCount">0 รายการ</span>
+        <div class="cat-filter" id="catFilter">
+          <button class="cat-pill active" data-cat="">ทั้งหมด</button>
+          <button class="cat-pill" data-cat="dialogue">บทพูด</button>
+          <button class="cat-pill" data-cat="ui">UI</button>
+          <button class="cat-pill" data-cat="other">อื่นๆ</button>
+        </div>
         <div class="search-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3" stroke-linecap="round"/></svg>
           <input type="text" id="searchInput" placeholder="ค้นหาข้อความหรือ ID...">
@@ -502,6 +594,7 @@
             <tr>
               <th style="width:1%">ID / บรรทัด</th>
               <th id="fileColHead" style="width:1%; display:none;">ไฟล์</th>
+              <th style="width:1%">ประเภท</th>
               <th>ข้อความต้นฉบับ</th>
             </tr>
           </thead>
@@ -519,7 +612,8 @@
     </div>
 
     <div class="field-note">
-      <b>บันทึกภาคสนาม —</b> ระบบเช็คแบบ "มีอักษรไทยหรือไม่" เป็นหลัก ดังนั้นข้อความที่ตั้งใจคงเป็นภาษาอังกฤษ (ชื่อเฉพาะ, ปุ่มคีย์ลัด, ชื่อสถานที่) จะถูกนับเป็น "ยังไม่แปล" ไปด้วย ควรไล่ดูรายการก่อนสรุปผลจริง
+      <b>บันทึกภาคสนาม —</b> ระบบเช็คแบบ "มีอักษรไทยหรือไม่" เป็นหลัก ดังนั้นข้อความที่ตั้งใจคงเป็นภาษาอังกฤษ (ชื่อเฉพาะ, ปุ่มคีย์ลัด, ชื่อสถานที่) จะถูกนับเป็น "ยังไม่แปล" ไปด้วย ควรไล่ดูรายการก่อนสรุปผลจริง<br>
+      การแบ่ง <b>บทพูด / UI</b> เป็นการเดาจากชื่อ ID/key (เช่น มีคำว่า menu, button, hud → UI หรือ dialogue, npc, quest → บทพูด) และถ้าไม่มีคำใบ้ในชื่อ จะเดาจากความยาว/รูปประโยคของข้อความแทน ไม่ใช่การวิเคราะห์แม่นยำ 100% — ใช้เป็นตัวกรองคร่าวๆ แล้วไล่ดูรายการจริงอีกที
     </div>
 
   </div>
@@ -534,6 +628,38 @@
   const KEYVAL_RE = /^([A-Za-z0-9_.\-\[\]]{1,60})\s*[:=]\s*(.+)$/;
 
   function hasThai(s){ return THAI_RE.test(s || ''); }
+
+  // ---------- category classifier: dialogue/speech vs UI strings ----------
+  const CATS = ['dialogue','ui','other'];
+  const CAT_LABEL = { dialogue: 'บทพูด', ui: 'UI', other: 'อื่นๆ' };
+
+  const UI_HINTS = [
+    'ui_','_ui','.ui','menu','hud','button','btn','label','tooltip','option',
+    'setting','title','header','footer','tab_','panel','popup','icon','checkbox',
+    'dropdown','slider','screen','prompt','keybind','hotkey','loading','notification',
+    'toast','msgbox','placeholder','caption'
+  ];
+  const SPEECH_HINTS = [
+    'dialogue','dialog','speech','voice','vo_','_vo','subtitle','subs_','quest',
+    'npc','convo','conversation','chat','line_','script','cutscene','radio',
+    'callout','bark','greet','banter','vox'
+  ];
+
+  function emptyCatCounts(){
+    return { dialogue:{total:0,translated:0}, ui:{total:0,translated:0}, other:{total:0,translated:0} };
+  }
+
+  function classify(id, text){
+    const key = String(id || '').toLowerCase();
+    for(const h of SPEECH_HINTS){ if(key.includes(h)) return 'dialogue'; }
+    for(const h of UI_HINTS){ if(key.includes(h)) return 'ui'; }
+    const t = String(text || '').trim();
+    const words = t.split(/\s+/).filter(Boolean);
+    const endsWithPunct = /[.!?…”"']$/.test(t);
+    if(words.length <= 3 && !endsWithPunct) return 'ui';
+    if(words.length >= 5 || endsWithPunct) return 'dialogue';
+    return 'other';
+  }
 
   function isMeaningful(s){
     if(!s) return false;
@@ -554,6 +680,7 @@
     const isKeyVal = detectFormat(lines);
     let total=0, translated=0;
     const untranslated=[];
+    const catCounts = emptyCatCounts();
     lines.forEach((line, idx)=>{
       if(!line.trim()) return;
       if(line.trim().startsWith('#') || line.trim().startsWith('//')) return;
@@ -570,10 +697,17 @@
       }
       if(!isMeaningful(value)) return;
       total++;
-      if(hasThai(value)) translated++;
-      else untranslated.push({ id: key || ('line ' + (idx+1)), text: value.slice(0,200) });
+      const id = key || ('line ' + (idx+1));
+      const cat = classify(key, value);
+      catCounts[cat].total++;
+      if(hasThai(value)){
+        translated++;
+        catCounts[cat].translated++;
+      } else {
+        untranslated.push({ id, text: value.slice(0,200), category: cat });
+      }
     });
-    return { total, translated, untranslated };
+    return { total, translated, untranslated, catCounts };
   }
 
   // basic CSV parser supporting quoted fields
@@ -623,27 +757,38 @@
 
     let total=0, translated=0;
     const untranslated=[];
+    const catCounts = emptyCatCounts();
     for(let i=1;i<rows.length;i++){
       const row = rows[i];
       const value = row[tIdx] || '';
+      const id = row[keyIdx] || ('row '+(i+1));
       if(!isMeaningful(value)){
         const sourceVal = sIdx!==-1 ? (row[sIdx]||'') : '';
         if(isMeaningful(sourceVal)){
           total++;
-          untranslated.push({ id: row[keyIdx] || ('row '+(i+1)), text: sourceVal.slice(0,200) });
+          const cat = classify(id, sourceVal);
+          catCounts[cat].total++;
+          untranslated.push({ id, text: sourceVal.slice(0,200), category: cat });
         }
         continue;
       }
       total++;
-      if(hasThai(value)) translated++;
-      else untranslated.push({ id: row[keyIdx] || ('row '+(i+1)), text: value.slice(0,200) });
+      const cat = classify(id, value);
+      catCounts[cat].total++;
+      if(hasThai(value)){
+        translated++;
+        catCounts[cat].translated++;
+      } else {
+        untranslated.push({ id, text: value.slice(0,200), category: cat });
+      }
     }
-    return { total, translated, untranslated };
+    return { total, translated, untranslated, catCounts };
   }
 
   // ---------- state ----------
-  let files = []; // {name, total, translated, untranslated:[{id,text}]}
+  let files = []; // {name, total, translated, untranslated:[{id,text,category}], catCounts}
   let activeFilter = null; // filename or null = all
+  let categoryFilter = null; // 'dialogue' | 'ui' | 'other' | null = all
   let searchTerm = '';
   let page = 1;
   const PAGE_SIZE = 60;
@@ -673,7 +818,7 @@
       try{
         const text = await f.text();
         const result = /\.csv$/i.test(f.name) ? parseCsv(text) : parseTxt(text);
-        files.push({ name: f.name, total: result.total, translated: result.translated, untranslated: result.untranslated });
+        files.push({ name: f.name, total: result.total, translated: result.translated, untranslated: result.untranslated, catCounts: result.catCounts });
       }catch(e){
         showError('อ่านไฟล์ไม่สำเร็จ: ' + f.name);
       }
@@ -712,11 +857,21 @@
 
   document.getElementById('addMoreBtn').addEventListener('click', ()=>fileInput.click());
   document.getElementById('resetBtn').addEventListener('click', ()=>{
-    files = []; activeFilter = null; searchTerm=''; page=1;
+    files = []; activeFilter = null; categoryFilter = null; searchTerm=''; page=1;
     document.getElementById('searchInput').value='';
     dashboard.classList.remove('show');
     dropSection.style.display = 'block';
     clearError();
+  });
+
+  document.querySelectorAll('#catFilter .cat-pill').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      categoryFilter = btn.dataset.cat || null;
+      document.querySelectorAll('#catFilter .cat-pill').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      page = 1;
+      renderTable();
+    });
   });
 
   document.getElementById('searchInput').addEventListener('input', (e)=>{
@@ -733,10 +888,10 @@
 
   document.getElementById('exportBtn').addEventListener('click', ()=>{
     const items = getFilteredItems();
-    let csv = 'file,identifier,text\n';
+    let csv = 'file,identifier,category,text\n';
     items.forEach(it=>{
       const esc = s => '"' + String(s).replace(/"/g,'""') + '"';
-      csv += [esc(it.file), esc(it.id), esc(it.text)].join(',') + '\n';
+      csv += [esc(it.file), esc(it.id), esc(CAT_LABEL[it.category] || it.category), esc(it.text)].join(',') + '\n';
     });
     const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -752,7 +907,10 @@
     let items = [];
     files.forEach(f=>{
       if(activeFilter && f.name !== activeFilter) return;
-      f.untranslated.forEach(u => items.push({ file: f.name, id: u.id, text: u.text }));
+      f.untranslated.forEach(u => {
+        if(categoryFilter && u.category !== categoryFilter) return;
+        items.push({ file: f.name, id: u.id, text: u.text, category: u.category });
+      });
     });
     if(searchTerm){
       items = items.filter(it =>
@@ -784,6 +942,20 @@
     document.getElementById('statTodo').textContent = (totalAll-doneAll).toLocaleString();
     document.getElementById('gaugeDone').textContent = doneAll.toLocaleString();
     document.getElementById('gaugeTotal').textContent = totalAll.toLocaleString();
+
+    const catAgg = emptyCatCounts();
+    files.forEach(f=>{
+      CATS.forEach(cat=>{
+        catAgg[cat].total += f.catCounts[cat].total;
+        catAgg[cat].translated += f.catCounts[cat].translated;
+      });
+    });
+    document.getElementById('catDialogueTodo').textContent = (catAgg.dialogue.total - catAgg.dialogue.translated).toLocaleString();
+    document.getElementById('catDialogueTotal').textContent = catAgg.dialogue.total.toLocaleString();
+    document.getElementById('catUiTodo').textContent = (catAgg.ui.total - catAgg.ui.translated).toLocaleString();
+    document.getElementById('catUiTotal').textContent = catAgg.ui.total.toLocaleString();
+    document.getElementById('catOtherTodo').textContent = (catAgg.other.total - catAgg.other.translated).toLocaleString();
+    document.getElementById('catOtherTotal').textContent = catAgg.other.total.toLocaleString();
 
     drawGauge(pct);
     renderFileList();
@@ -829,12 +1001,13 @@
     const tbody = document.getElementById('tableBody');
 
     if(!pageItems.length){
-      tbody.innerHTML = `<tr><td colspan="3"><div class="empty-state">${items.length===0 && !searchTerm ? 'ไม่มีรายการที่ยังไม่แปล — เก็บครบทุกจุดแล้ว' : 'ไม่พบรายการที่ตรงกับคำค้นหา'}</div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state">${items.length===0 && !searchTerm && !categoryFilter ? 'ไม่มีรายการที่ยังไม่แปล — เก็บครบทุกจุดแล้ว' : 'ไม่พบรายการที่ตรงกับตัวกรอง'}</div></td></tr>`;
     } else {
       tbody.innerHTML = pageItems.map(it => `
         <tr>
           <td class="idcol">${escapeHtml(it.id)}</td>
           ${showFileCol ? `<td class="filecol">${escapeHtml(it.file)}</td>` : ''}
+          <td class="catcol"><span class="cat-badge ${it.category}">${escapeHtml(CAT_LABEL[it.category] || it.category)}</span></td>
           <td class="textcol">${highlight(it.text)}</td>
         </tr>
       `).join('');

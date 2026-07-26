@@ -22,6 +22,8 @@
     --blaze-dim: #E1652C33;
     --moss: #86AE68;
     --moss-dim: #86AE6822;
+    --amber: #D9A441;
+    --amber-dim: #D9A44133;
     --radius: 14px;
     --radius-sm: 8px;
   }
@@ -223,9 +225,10 @@
   /* Stat cards */
   .stat-row {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 14px;
   }
+  @media (max-width: 720px){ .stat-row{ grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 480px){ .stat-row{ grid-template-columns: 1fr; } }
   .stat-card {
     background: var(--panel);
@@ -256,6 +259,7 @@
   }
   .stat-card.total { --stat-color: var(--muted); }
   .stat-card.done { --stat-color: var(--moss); }
+  .stat-card.partial { --stat-color: var(--amber); }
   .stat-card.todo { --stat-color: var(--blaze); }
 
   .cat-row {
@@ -290,6 +294,29 @@
     font-size: 12px;
     font-weight: 400;
     color: var(--muted);
+  }
+
+  .filter-groups {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    width: 100%;
+    order: 3;
+    margin: 2px 0 0;
+  }
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .filter-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted-2);
+    flex-shrink: 0;
   }
 
   .cat-filter {
@@ -443,7 +470,11 @@
     width: 1%;
   }
   td.textcol { color: var(--ink); line-height: 1.5; }
-  td.catcol { white-space: nowrap; width: 1%; }
+  td.catcol {
+    white-space: nowrap;
+    width: 1%;
+  }
+  td.catcol { display: table-cell; }
   .cat-badge {
     display: inline-block;
     font-family: 'IBM Plex Mono', monospace;
@@ -452,10 +483,14 @@
     border-radius: 999px;
     border: 1px solid var(--line-soft);
     color: var(--muted);
+    margin: 1px 0;
   }
+  .cat-badge + .cat-badge { margin-left: 4px; }
   .cat-badge.dialogue { color: var(--moss); border-color: var(--moss-dim); background: var(--moss-dim); }
   .cat-badge.ui { color: var(--blaze); border-color: var(--blaze-dim); background: var(--blaze-dim); }
   .cat-badge.other { color: var(--muted-2); }
+  .cat-badge.partial { color: var(--amber); border-color: var(--amber-dim); background: var(--amber-dim); }
+  .cat-badge.untranslated { color: var(--muted-2); }
   mark { background: var(--blaze-dim); color: var(--blaze); border-radius: 2px; padding: 0 1px; }
 
   .table-foot {
@@ -542,6 +577,10 @@
             <div class="num" id="statDone">0</div>
             <div class="lbl">แปลแล้ว</div>
           </div>
+          <div class="stat-card partial">
+            <div class="num" id="statPartial">0</div>
+            <div class="lbl">แปลบางส่วน</div>
+          </div>
           <div class="stat-card todo">
             <div class="num" id="statTodo">0</div>
             <div class="lbl">ยังไม่แปล</div>
@@ -574,13 +613,26 @@
 
     <div class="table-card">
       <div class="table-head">
-        <h3>รายการที่ยังไม่แปล</h3>
+        <h3>รายการที่ต้องตรวจ</h3>
         <span class="count-pill" id="tableCount">0 รายการ</span>
-        <div class="cat-filter" id="catFilter">
-          <button class="cat-pill active" data-cat="">ทั้งหมด</button>
-          <button class="cat-pill" data-cat="dialogue">บทพูด</button>
-          <button class="cat-pill" data-cat="ui">UI</button>
-          <button class="cat-pill" data-cat="other">อื่นๆ</button>
+        <div class="filter-groups">
+          <div class="filter-group">
+            <span class="filter-label">ประเภท</span>
+            <div class="cat-filter" id="catFilter">
+              <button class="cat-pill active" data-cat="">ทั้งหมด</button>
+              <button class="cat-pill" data-cat="dialogue">บทพูด</button>
+              <button class="cat-pill" data-cat="ui">UI</button>
+              <button class="cat-pill" data-cat="other">อื่นๆ</button>
+            </div>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">สถานะ</span>
+            <div class="cat-filter" id="statusFilterBtns">
+              <button class="cat-pill active" data-status="">ทั้งหมด</button>
+              <button class="cat-pill" data-status="untranslated">ยังไม่แปล</button>
+              <button class="cat-pill" data-status="partial">แปลบางส่วน</button>
+            </div>
+          </div>
         </div>
         <div class="search-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3" stroke-linecap="round"/></svg>
@@ -594,7 +646,7 @@
             <tr>
               <th style="width:1%">ID / บรรทัด</th>
               <th id="fileColHead" style="width:1%; display:none;">ไฟล์</th>
-              <th style="width:1%">ประเภท</th>
+              <th style="width:1%">สถานะ / ประเภท</th>
               <th>ข้อความต้นฉบับ</th>
             </tr>
           </thead>
@@ -612,7 +664,7 @@
     </div>
 
     <div class="field-note">
-      <b>บันทึกภาคสนาม —</b> ระบบเช็คแบบ "มีอักษรไทยหรือไม่" เป็นหลัก ดังนั้นข้อความที่ตั้งใจคงเป็นภาษาอังกฤษ (ชื่อเฉพาะ, ปุ่มคีย์ลัด, ชื่อสถานที่) จะถูกนับเป็น "ยังไม่แปล" ไปด้วย ควรไล่ดูรายการก่อนสรุปผลจริง<br>
+      <b>บันทึกภาคสนาม —</b> ระบบเช็คสัดส่วนอักษรไทยต่ออักษรทั้งหมดในข้อความ (ไม่ใช่แค่ "มีไทยสักตัวก็พอ") ถ้าสัดส่วนไทยน้อยกว่า 50% จะนับเป็น <b>"แปลบางส่วน"</b> แยกออกมาให้ตรวจ ส่วนข้อความที่ตั้งใจคงเป็นภาษาอังกฤษ (ชื่อเฉพาะ, ปุ่มคีย์ลัด, ชื่อสถานที่) ก็จะถูกนับเป็น "ยังไม่แปล" ไปด้วยเพราะระบบแยกความตั้งใจไม่ได้ ควรไล่ดูรายการก่อนสรุปผลจริง<br>
       การแบ่ง <b>บทพูด / UI</b> เป็นการเดาจากชื่อ ID/key (เช่น มีคำว่า menu, button, hud → UI หรือ dialogue, npc, quest → บทพูด) และถ้าไม่มีคำใบ้ในชื่อ จะเดาจากความยาว/รูปประโยคของข้อความแทน ไม่ใช่การวิเคราะห์แม่นยำ 100% — ใช้เป็นตัวกรองคร่าวๆ แล้วไล่ดูรายการจริงอีกที
     </div>
 
@@ -626,8 +678,22 @@
 
   const THAI_RE = /[\u0E00-\u0E7F]/;
   const KEYVAL_RE = /^([A-Za-z0-9_.\-\[\]]{1,60})\s*[:=]\s*(.+)$/;
+  const PARTIAL_THRESHOLD = 0.5; // fraction of Thai letters among all letters needed to count as "fully translated"
 
-  function hasThai(s){ return THAI_RE.test(s || ''); }
+  function letterCounts(s){
+    const str = String(s || '');
+    const thai = (str.match(/[\u0E00-\u0E7F]/g) || []).length;
+    const latin = (str.match(/[A-Za-z]/g) || []).length;
+    return { thai, totalLetters: thai + latin };
+  }
+
+  // returns 'translated' | 'partial' | 'untranslated' based on the ratio of Thai
+  // letters to all letters — a single stray Thai word no longer counts as "done"
+  function getStatus(s){
+    const { thai, totalLetters } = letterCounts(s);
+    if(thai === 0 || totalLetters === 0) return 'untranslated';
+    return (thai / totalLetters) >= PARTIAL_THRESHOLD ? 'translated' : 'partial';
+  }
 
   // ---------- category classifier: dialogue/speech vs UI strings ----------
   const CATS = ['dialogue','ui','other'];
@@ -680,6 +746,7 @@
     const isKeyVal = detectFormat(lines);
     let total=0, translated=0;
     const untranslated=[];
+    const partial=[];
     const catCounts = emptyCatCounts();
     lines.forEach((line, idx)=>{
       if(!line.trim()) return;
@@ -700,14 +767,17 @@
       const id = key || ('line ' + (idx+1));
       const cat = classify(key, value);
       catCounts[cat].total++;
-      if(hasThai(value)){
+      const status = getStatus(value);
+      if(status === 'translated'){
         translated++;
         catCounts[cat].translated++;
+      } else if(status === 'partial'){
+        partial.push({ id, text: value.slice(0,200), category: cat });
       } else {
         untranslated.push({ id, text: value.slice(0,200), category: cat });
       }
     });
-    return { total, translated, untranslated, catCounts };
+    return { total, translated, untranslated, partial, catCounts };
   }
 
   // basic CSV parser supporting quoted fields
@@ -757,6 +827,7 @@
 
     let total=0, translated=0;
     const untranslated=[];
+    const partial=[];
     const catCounts = emptyCatCounts();
     for(let i=1;i<rows.length;i++){
       const row = rows[i];
@@ -775,20 +846,24 @@
       total++;
       const cat = classify(id, value);
       catCounts[cat].total++;
-      if(hasThai(value)){
+      const status = getStatus(value);
+      if(status === 'translated'){
         translated++;
         catCounts[cat].translated++;
+      } else if(status === 'partial'){
+        partial.push({ id, text: value.slice(0,200), category: cat });
       } else {
         untranslated.push({ id, text: value.slice(0,200), category: cat });
       }
     }
-    return { total, translated, untranslated, catCounts };
+    return { total, translated, untranslated, partial, catCounts };
   }
 
   // ---------- state ----------
-  let files = []; // {name, total, translated, untranslated:[{id,text,category}], catCounts}
+  let files = []; // {name, total, translated, untranslated:[{id,text,category}], partial:[{id,text,category}], catCounts}
   let activeFilter = null; // filename or null = all
   let categoryFilter = null; // 'dialogue' | 'ui' | 'other' | null = all
+  let statusFilter = null; // 'untranslated' | 'partial' | null = all
   let searchTerm = '';
   let page = 1;
   const PAGE_SIZE = 60;
@@ -818,7 +893,7 @@
       try{
         const text = await f.text();
         const result = /\.csv$/i.test(f.name) ? parseCsv(text) : parseTxt(text);
-        files.push({ name: f.name, total: result.total, translated: result.translated, untranslated: result.untranslated, catCounts: result.catCounts });
+        files.push({ name: f.name, total: result.total, translated: result.translated, untranslated: result.untranslated, partial: result.partial, catCounts: result.catCounts });
       }catch(e){
         showError('อ่านไฟล์ไม่สำเร็จ: ' + f.name);
       }
@@ -857,8 +932,10 @@
 
   document.getElementById('addMoreBtn').addEventListener('click', ()=>fileInput.click());
   document.getElementById('resetBtn').addEventListener('click', ()=>{
-    files = []; activeFilter = null; categoryFilter = null; searchTerm=''; page=1;
+    files = []; activeFilter = null; categoryFilter = null; statusFilter = null; searchTerm=''; page=1;
     document.getElementById('searchInput').value='';
+    document.querySelectorAll('#catFilter .cat-pill').forEach(b=>b.classList.toggle('active', !b.dataset.cat));
+    document.querySelectorAll('#statusFilterBtns .cat-pill').forEach(b=>b.classList.toggle('active', !b.dataset.status));
     dashboard.classList.remove('show');
     dropSection.style.display = 'block';
     clearError();
@@ -868,6 +945,16 @@
     btn.addEventListener('click', ()=>{
       categoryFilter = btn.dataset.cat || null;
       document.querySelectorAll('#catFilter .cat-pill').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      page = 1;
+      renderTable();
+    });
+  });
+
+  document.querySelectorAll('#statusFilterBtns .cat-pill').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      statusFilter = btn.dataset.status || null;
+      document.querySelectorAll('#statusFilterBtns .cat-pill').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       page = 1;
       renderTable();
@@ -888,10 +975,11 @@
 
   document.getElementById('exportBtn').addEventListener('click', ()=>{
     const items = getFilteredItems();
-    let csv = 'file,identifier,category,text\n';
+    let csv = 'file,identifier,status,category,text\n';
     items.forEach(it=>{
       const esc = s => '"' + String(s).replace(/"/g,'""') + '"';
-      csv += [esc(it.file), esc(it.id), esc(CAT_LABEL[it.category] || it.category), esc(it.text)].join(',') + '\n';
+      const statusLabel = it.status==='partial' ? 'แปลบางส่วน' : 'ยังไม่แปล';
+      csv += [esc(it.file), esc(it.id), esc(statusLabel), esc(CAT_LABEL[it.category] || it.category), esc(it.text)].join(',') + '\n';
     });
     const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -907,9 +995,14 @@
     let items = [];
     files.forEach(f=>{
       if(activeFilter && f.name !== activeFilter) return;
-      f.untranslated.forEach(u => {
+      const combined = [
+        ...f.untranslated.map(u=>({ ...u, status: 'untranslated' })),
+        ...f.partial.map(u=>({ ...u, status: 'partial' }))
+      ];
+      combined.forEach(u=>{
         if(categoryFilter && u.category !== categoryFilter) return;
-        items.push({ file: f.name, id: u.id, text: u.text, category: u.category });
+        if(statusFilter && u.status !== statusFilter) return;
+        items.push({ file: f.name, id: u.id, text: u.text, category: u.category, status: u.status });
       });
     });
     if(searchTerm){
@@ -935,11 +1028,14 @@
   function render(){
     const totalAll = files.reduce((a,f)=>a+f.total,0);
     const doneAll = files.reduce((a,f)=>a+f.translated,0);
+    const partialAll = files.reduce((a,f)=>a+f.partial.length,0);
+    const todoAll = files.reduce((a,f)=>a+f.untranslated.length,0);
     const pct = totalAll ? (doneAll/totalAll*100) : 0;
 
     document.getElementById('statTotal').textContent = totalAll.toLocaleString();
     document.getElementById('statDone').textContent = doneAll.toLocaleString();
-    document.getElementById('statTodo').textContent = (totalAll-doneAll).toLocaleString();
+    document.getElementById('statPartial').textContent = partialAll.toLocaleString();
+    document.getElementById('statTodo').textContent = todoAll.toLocaleString();
     document.getElementById('gaugeDone').textContent = doneAll.toLocaleString();
     document.getElementById('gaugeTotal').textContent = totalAll.toLocaleString();
 
@@ -1001,13 +1097,16 @@
     const tbody = document.getElementById('tableBody');
 
     if(!pageItems.length){
-      tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state">${items.length===0 && !searchTerm && !categoryFilter ? 'ไม่มีรายการที่ยังไม่แปล — เก็บครบทุกจุดแล้ว' : 'ไม่พบรายการที่ตรงกับตัวกรอง'}</div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state">${items.length===0 && !searchTerm && !categoryFilter && !statusFilter ? 'ไม่มีรายการที่ต้องตรวจ — เก็บครบทุกจุดแล้ว' : 'ไม่พบรายการที่ตรงกับตัวกรอง'}</div></td></tr>`;
     } else {
       tbody.innerHTML = pageItems.map(it => `
         <tr>
           <td class="idcol">${escapeHtml(it.id)}</td>
           ${showFileCol ? `<td class="filecol">${escapeHtml(it.file)}</td>` : ''}
-          <td class="catcol"><span class="cat-badge ${it.category}">${escapeHtml(CAT_LABEL[it.category] || it.category)}</span></td>
+          <td class="catcol">
+            <span class="cat-badge ${it.status}">${it.status==='partial' ? 'บางส่วน' : 'ยังไม่แปล'}</span>
+            <span class="cat-badge ${it.category}">${escapeHtml(CAT_LABEL[it.category] || it.category)}</span>
+          </td>
           <td class="textcol">${highlight(it.text)}</td>
         </tr>
       `).join('');

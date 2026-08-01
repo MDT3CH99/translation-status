@@ -741,6 +741,10 @@
     <div class="eyebrow">THAI-LANG · MOD LOCALIZATION</div>
     <h1>Thai-Lang</h1>
     <p class="sub">ม็อดแปลไทย แจกฟรี — รวมโปรเจกต์และเครื่องมือเช็คสถานะแปลไว้ในที่เดียว</p>
+    <div class="sys-status" id="visitStatus">
+      <span class="status-dot active"></span>
+      <span id="visitCountText">กำลังนับผู้เข้าชม…</span>
+    </div>
     <div class="coords">N 13°45' E 100°30'<br>REC. UNIT — TH LOC</div>
     <div class="nav-tabs">
       <button class="btn tab active" id="tabHome" type="button">โปรเจกต์ทั้งหมด</button>
@@ -1509,6 +1513,17 @@
   } else {
     grid.innerHTML = GAMES.map(gameCardHtml).join('');
   }
+
+  // ---------- visitor counter (public, anonymous hit counter) ----------
+  const visitText = document.getElementById('visitCountText');
+  fetch('https://api.countapi.xyz/hit/thai-lang-translation-status/site-visits')
+    .then(r => r.json())
+    .then(data => {
+      visitText.textContent = `ผู้เข้าชมทั้งหมด ${data.value.toLocaleString('en-US')} ครั้ง`;
+    })
+    .catch(() => {
+      visitText.textContent = 'นับผู้เข้าชมไม่สำเร็จ';
+    });
 
 })();
 </script>

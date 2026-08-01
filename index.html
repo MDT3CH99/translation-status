@@ -674,12 +674,68 @@
   .game-status-dot.released { background: var(--moss); }
   .game-status-dot.in-progress { background: var(--amber); }
   .home-empty { padding: 40px 0; color: var(--muted); font-size: 13.5px; text-align: center; }
+
+  /* ---------- Donate modal ---------- */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(6, 10, 8, 0.72);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .modal-backdrop.show { display: flex; }
+  .modal-card {
+    position: relative;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 30px 26px 26px;
+    max-width: 320px;
+    width: 100%;
+    text-align: center;
+  }
+  .modal-close {
+    position: absolute;
+    top: 10px; right: 12px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px;
+  }
+  .modal-close:hover { color: var(--ink); }
+  .modal-eyebrow {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--blaze); margin-bottom: 8px;
+  }
+  .modal-sub { color: var(--muted); font-size: 12.5px; line-height: 1.6; margin: 0 0 18px; }
+  .modal-qr {
+    width: 100%;
+    max-width: 220px;
+    border-radius: var(--radius-sm);
+    display: block;
+    margin: 0 auto;
+  }
 </style>
 </head>
 <body>
 <div class="scan-overlay" aria-hidden="true"></div>
 <div class="scan-sweep" aria-hidden="true"></div>
 <div class="wrap">
+
+  <div class="modal-backdrop" id="donateModal">
+    <div class="modal-card hud-frame">
+      <button class="modal-close" id="donateClose" type="button" aria-label="ปิด">&times;</button>
+      <div class="modal-eyebrow">สนับสนุนผู้พัฒนา</div>
+      <p class="modal-sub">ทุกม็อดในเว็บนี้แจกฟรีเสมอ — ถ้าอยากเลี้ยงกาแฟหรือสนับสนุนค่าเซิร์ฟเวอร์ ก็ยินดีมากครับ</p>
+      <img class="modal-qr" src="assets/donate-qr.jpg" alt="QR PromptPay สำหรับโดเนท">
+    </div>
+  </div>
 
   <header>
     <div class="eyebrow">THAI-LANG · MOD LOCALIZATION</div>
@@ -690,6 +746,7 @@
       <button class="btn tab active" id="tabHome" type="button">โปรเจกต์ทั้งหมด</button>
       <button class="btn tab" id="tabChecker" type="button">เครื่องมือเช็คสถานะแปล</button>
       <a class="btn" href="https://discord.gg/5U4xm3hmmk" target="_blank" rel="noopener" style="margin-left:auto;">เข้าดิสคอร์ด</a>
+      <button class="btn primary" id="donateBtn" type="button">สนับสนุนผู้พัฒนา</button>
     </div>
   </header>
 
@@ -1361,6 +1418,15 @@
   tabHome.addEventListener('click', ()=> showView('home'));
   tabChecker.addEventListener('click', ()=> showView('checker'));
 
+  // ---------- donate modal ----------
+  const donateBtn = document.getElementById('donateBtn');
+  const donateModal = document.getElementById('donateModal');
+  const donateClose = document.getElementById('donateClose');
+  donateBtn.addEventListener('click', ()=> donateModal.classList.add('show'));
+  donateClose.addEventListener('click', ()=> donateModal.classList.remove('show'));
+  donateModal.addEventListener('click', (e)=>{ if(e.target === donateModal) donateModal.classList.remove('show'); });
+  document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') donateModal.classList.remove('show'); });
+
   // ---------- game hub data ----------
   // เพิ่มเกมใหม่: copy object ด้านล่างแล้วแก้ค่า ไม่ต้องแตะโค้ดส่วนอื่น
   const GAMES = [
@@ -1380,12 +1446,12 @@
       name: "7DTD Thai localization",
       modTitle: "7DTD ภาษาไทย",
       status: "released",
-      version: "2",
+      version: "1",
       downloadUrl: "https://www.nexusmods.com/7daystodie/mods/11793?tab=files&file_id=44849",
       downloadLabel: "Nexus Mods",
       discordUrl: "https://discord.gg/5U4xm3hmmk",
       updated: "2026-08-01",
-      stats: { endorsements: 0, totalDls: 0, views: 0 },
+      stats: { endorsements: 0, totalDls: null, views: null },
       note: "แปลอินเทอร์เฟซและข้อความในเกมเป็นภาษาไทย อัปเดตต่อเนื่อง"
     },
   ];

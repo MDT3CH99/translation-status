@@ -743,7 +743,8 @@
     <p class="sub">ม็อดแปลไทย แจกฟรี — รวมโปรเจกต์และเครื่องมือเช็คสถานะแปลไว้ในที่เดียว</p>
     <div class="sys-status" id="visitStatus">
       <span class="status-dot active"></span>
-      <span id="visitCountText">กำลังนับผู้เข้าชม…</span>
+      <span>ผู้เข้าชมทั้งหมด</span>
+      <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fmdt3ch99.github.io%2Ftranslation-status%2F&count_bg=%23E1652C&title_bg=%23222222&title=&edge_flat=true" alt="จำนวนผู้เข้าชม" style="height:18px; vertical-align:middle;">
     </div>
     <div class="coords">N 13°45' E 100°30'<br>REC. UNIT — TH LOC</div>
     <div class="nav-tabs">
@@ -1513,17 +1514,6 @@
   } else {
     grid.innerHTML = GAMES.map(gameCardHtml).join('');
   }
-
-  // ---------- visitor counter (public, anonymous hit counter) ----------
-  const visitText = document.getElementById('visitCountText');
-  fetch('https://api.countapi.xyz/hit/thai-lang-translation-status/site-visits')
-    .then(r => r.json())
-    .then(data => {
-      visitText.textContent = `ผู้เข้าชมทั้งหมด ${data.value.toLocaleString('en-US')} ครั้ง`;
-    })
-    .catch(() => {
-      visitText.textContent = 'นับผู้เข้าชมไม่สำเร็จ';
-    });
 
 })();
 </script>

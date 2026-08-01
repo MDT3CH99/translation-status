@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>จุดตรวจคำแปล — Translation Checkpoint</title>
+<title>Thai-Lang — ม็อดแปลไทย</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chonburi&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -610,6 +610,70 @@
   @media (prefers-reduced-motion: reduce) {
     * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
   }
+
+  /* ---------- Nav tabs ---------- */
+  .nav-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 22px;
+  }
+  .nav-tabs .btn.tab.active {
+    background: var(--blaze);
+    border-color: var(--blaze);
+    color: #17110C;
+  }
+
+  /* ---------- View switching ---------- */
+  .view { display: none; }
+  .view.show { display: block; animation: fadein .35s ease both; }
+
+  /* ---------- Home / game hub ---------- */
+  .section-title {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--muted-2); margin: 0 0 16px;
+  }
+  .game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 18px;
+  }
+  .game-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .game-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .game-card-eng {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted-2);
+  }
+  .game-card h2 {
+    font-family: 'IBM Plex Sans Thai'; font-weight: 600; font-size: 17px; margin: 2px 0 0; color: var(--ink);
+  }
+  .game-badge {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em;
+    padding: 3px 9px; border-radius: 999px; white-space: nowrap; flex-shrink: 0;
+    border: 1px solid var(--line-soft);
+  }
+  .game-badge.released { color: var(--moss); border-color: var(--moss-dim); background: var(--moss-dim); }
+  .game-badge.in-progress { color: var(--amber); border-color: var(--amber-dim); background: var(--amber-dim); }
+  .game-card p.note { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 0; flex: 1; }
+  .game-stats {
+    display: flex; gap: 14px; flex-wrap: wrap;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--muted-2);
+  }
+  .game-stats b { color: var(--ink); font-weight: 600; }
+  .game-card-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .game-card-actions .btn { font-size: 12.5px; padding: 8px 14px; }
+  .game-status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+  .game-status-dot.released { background: var(--moss); }
+  .game-status-dot.in-progress { background: var(--amber); }
+  .home-empty { padding: 40px 0; color: var(--muted); font-size: 13.5px; text-align: center; }
 </style>
 </head>
 <body>
@@ -618,15 +682,32 @@
 <div class="wrap">
 
   <header>
-    <div class="eyebrow">TRANSLATION FIELD LOG · MOD LOCALIZATION</div>
-    <h1>จุดตรวจคำแปล</h1>
-    <p class="sub">By Thai-Lang</p>
-    <div class="sys-status" id="sysStatus">
-      <span class="status-dot" id="statusDot"></span>
-      <span id="sysStatusText">SYSTEM READY — รอไฟล์นำเข้า</span>
-    </div>
+    <div class="eyebrow">THAI-LANG · MOD LOCALIZATION</div>
+    <h1>Thai-Lang</h1>
+    <p class="sub">ม็อดแปลไทย แจกฟรี — รวมโปรเจกต์และเครื่องมือเช็คสถานะแปลไว้ในที่เดียว</p>
     <div class="coords">N 13°45' E 100°30'<br>REC. UNIT — TH LOC</div>
+    <div class="nav-tabs">
+      <button class="btn tab active" id="tabHome" type="button">โปรเจกต์ทั้งหมด</button>
+      <button class="btn tab" id="tabChecker" type="button">เครื่องมือเช็คสถานะแปล</button>
+      <a class="btn" href="https://discord.gg/5U4xm3hmmk" target="_blank" rel="noopener" style="margin-left:auto;">เข้าดิสคอร์ด</a>
+    </div>
   </header>
+
+  <div class="view show" id="view-home">
+    <div class="section-title">โปรเจกต์ทั้งหมด</div>
+    <div class="game-grid" id="gameGrid"></div>
+    <div class="home-empty" id="homeEmpty" style="display:none;"></div>
+    <div class="field-note">
+      <b>บันทึกภาคสนาม —</b> สถานะ "ปล่อยแล้ว" หมายถึงมีไฟล์ให้โหลดแล้วอย่างน้อย 1 เวอร์ชัน ส่วน "กำลังทำ" คือยังอยู่ระหว่างแปล/แก้ปัญหาทางเทคนิค ติดตามความคืบหน้าแบบเรียลไทม์ได้ในดิสคอร์ด
+    </div>
+  </div>
+
+  <div class="view" id="view-checker">
+
+  <div class="sys-status" id="sysStatus" style="margin-bottom:20px;">
+    <span class="status-dot" id="statusDot"></span>
+    <span id="sysStatusText">SYSTEM READY — รอไฟล์นำเข้า</span>
+  </div>
 
   <div id="dropSection">
     <div class="dropzone hud-frame" id="dropzone" tabindex="0" role="button" aria-label="ลากไฟล์มาวาง หรือกดเพื่อเลือกไฟล์">
@@ -757,6 +838,8 @@
     </div>
 
   </div>
+
+  </div><!-- /view-checker -->
 
 </div>
 
@@ -1253,6 +1336,133 @@
       <line x1="${cx}" y1="${cy-10}" x2="${cx}" y2="${cy+10}" stroke="var(--muted-2)" stroke-width="1"/>
       <text id="gaugePct" x="${cx}" y="${cy+7}" text-anchor="middle" font-size="30" fill="var(--ink)" font-family="'IBM Plex Mono',monospace" font-weight="600">${pct.toFixed(1)}%</text>
     `;
+  }
+
+})();
+</script>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- tab switching ----------
+  const tabHome = document.getElementById('tabHome');
+  const tabChecker = document.getElementById('tabChecker');
+  const viewHome = document.getElementById('view-home');
+  const viewChecker = document.getElementById('view-checker');
+
+  function showView(name){
+    const home = name === 'home';
+    viewHome.classList.toggle('show', home);
+    viewChecker.classList.toggle('show', !home);
+    tabHome.classList.toggle('active', home);
+    tabChecker.classList.toggle('active', !home);
+  }
+  tabHome.addEventListener('click', ()=> showView('home'));
+  tabChecker.addEventListener('click', ()=> showView('checker'));
+
+  // ---------- game hub data ----------
+  // เพิ่มเกมใหม่: copy object ด้านล่างแล้วแก้ค่า ไม่ต้องแตะโค้ดส่วนอื่น
+  const GAMES = [
+    {
+      name: "theHunter: Call of the Wild",
+      modTitle: "TheHunter COTW Thai localization",
+      status: "released",
+      version: "2",
+      downloadUrl: "https://www.nexusmods.com/thehuntercallofthewild/mods/1020",
+      downloadLabel: "Nexus Mods",
+      discordUrl: "https://discord.gg/5U4xm3hmmk",
+      updated: "2026-07-28",
+      stats: { endorsements: 2, totalDls: 211, views: 965 },
+      note: "แปลอินเทอร์เฟซและข้อความในเกมเป็นภาษาไทย อัปเดตต่อเนื่อง"
+    },
+    {
+      name: "Arma 3",
+      modTitle: "Arma 3 Thai localization",
+      status: "in-progress",
+      downloadUrl: "",
+      downloadLabel: "",
+      discordUrl: "https://discord.gg/5U4xm3hmmk",
+      updated: "2026-07",
+      stats: null,
+      note: "อยู่ระหว่างแก้ไขปัญหาข้อความบางส่วนไม่ขึ้นในเกม"
+    },
+    {
+      name: "Stranded Deep",
+      modTitle: "Stranded Deep Thai localization",
+      status: "in-progress",
+      downloadUrl: "",
+      downloadLabel: "",
+      discordUrl: "https://discord.gg/5U4xm3hmmk",
+      updated: "2026-07",
+      stats: null,
+      note: "กำลังแปลผ่านระบบ Workshop Tool"
+    },
+    {
+      name: "Helldivers",
+      modTitle: "Helldivers Thai localization",
+      status: "in-progress",
+      downloadUrl: "",
+      downloadLabel: "",
+      discordUrl: "https://discord.gg/5U4xm3hmmk",
+      updated: "2026-07",
+      stats: null,
+      note: "กำลังพัฒนาแบบอักษรไทยสำหรับเกม"
+    }
+  ];
+
+  const STATUS_LABEL = { released: 'ปล่อยแล้ว', 'in-progress': 'กำลังทำ' };
+
+  function fmtNum(n){
+    if(n === null || n === undefined) return '—';
+    return n.toLocaleString('en-US');
+  }
+
+  function gameCardHtml(game){
+    const statusKey = game.status === 'released' ? 'released' : 'in-progress';
+    const statusLabel = STATUS_LABEL[statusKey];
+
+    let statsHtml;
+    if(game.stats){
+      const s = game.stats;
+      statsHtml = `<div class="game-stats">
+        <span><span class="game-status-dot ${statusKey}"></span>ดาวน์โหลด <b>${fmtNum(s.totalDls)}</b></span>
+        <span>เข้าชม <b>${fmtNum(s.views)}</b></span>
+        <span>ถูกใจ <b>${fmtNum(s.endorsements)}</b></span>
+      </div>`;
+    } else {
+      statsHtml = `<div class="game-stats"><span><span class="game-status-dot ${statusKey}"></span>อัปเดตล่าสุด <b>${game.updated || '—'}</b></span></div>`;
+    }
+
+    let actionsHtml = '';
+    if(game.downloadUrl){
+      actionsHtml += `<a class="btn primary" href="${game.downloadUrl}" target="_blank" rel="noopener">ดาวน์โหลด${game.downloadLabel ? ' · ' + game.downloadLabel : ''}</a>`;
+    }
+    if(game.discordUrl){
+      actionsHtml += `<a class="btn" href="${game.discordUrl}" target="_blank" rel="noopener">ติดตามในดิสคอร์ด</a>`;
+    }
+
+    return `<div class="game-card hud-frame">
+      <div class="game-card-top">
+        <div>
+          <div class="game-card-eng">${game.name}</div>
+          <h2>${game.modTitle || game.name}</h2>
+        </div>
+        <span class="game-badge ${statusKey}">${statusLabel}</span>
+      </div>
+      <p class="note">${game.note || ''}</p>
+      ${statsHtml}
+      <div class="game-card-actions">${actionsHtml}</div>
+    </div>`;
+  }
+
+  const grid = document.getElementById('gameGrid');
+  const empty = document.getElementById('homeEmpty');
+  if(!GAMES.length){
+    empty.style.display = 'block';
+    empty.textContent = 'ยังไม่มีข้อมูลเกม';
+  } else {
+    grid.innerHTML = GAMES.map(gameCardHtml).join('');
   }
 
 })();
